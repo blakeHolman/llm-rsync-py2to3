@@ -142,14 +142,19 @@ def _predict(old, prev_old, prev_new, target_len=None):
 
     # Decide how many tokens to generate
     if target_len is not None:
-        approx_target_tokens = target_len + 32  # small slack
-        approx_target_tokens = max(16, approx_target_tokens)
+        # target_len is the tokenized length of the true "new" file
+        approx_target_tokens = target_len + 64  # slack so it can finish the last line
+        approx_target_tokens = max(32, approx_target_tokens)
         approx_target_tokens = min(approx_target_tokens, available_for_gen)
     else:
-        approx_target_tokens = min(512, available_for_gen)
+        # Fallback: scale with old length
+        old_tokens = len(TOKENIZER(old).input_ids)
+        approx_target_tokens = old_tokens + 64
+        approx_target_tokens = max(32, approx_target_tokens)
+        approx_target_tokens = min(approx_target_tokens, available_for_gen)
 
-    # Keep the generation fairly short and deterministic to reduce junk
-    max_new = min(160, approx_target_tokens)
+    # Let the model generate up to the approximate target length
+    max_new = approx_target_tokens
 
     with torch.no_grad():
         outputs = MODEL.generate(
