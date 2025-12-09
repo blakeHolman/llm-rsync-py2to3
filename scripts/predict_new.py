@@ -84,15 +84,14 @@ def _open_data(path, len_prompt=False, stop_after=sys.maxsize):
             prev_old = old
             prev_new = new
 
-            metrics, residual = _compare(predicted, new)
+            metrics, residual = _compare(old, predicted, new)
 
-            # Build a simple row for metrics
             row = {
                 "index": idx,
                 "old_len": len(old),
                 "new_len": len(new),
                 "pred_len": len(predicted) if predicted is not None else 0,
-                **(metrics or {}),   # merge metrics dict if not None
+                **(metrics or {}),
             }
             results.append(row)
 
@@ -187,117 +186,93 @@ def _model_max_ctx():
 
 
 # Compare predicted data to actual "new"
-def _compare(predicted, actual):
+def _compare(old, predicted, actual_new):
     """
-    Compute rsync-style comparison metrics and a simple 'residual'.
-
-    We treat 'residual' as the concatenation of all changed segments in `actual`
-    relative to `predicted` (via difflib.SequenceMatcher). This is a crude,
-    lower-bound approximation of what you'd need to send on top of the
-    model's prediction to recover the true 'new' content.
-
-    Returns:
-        metrics (dict), residual (str)
+    Compute metrics comparing predicted vs actual_new, and also how both
+    differ from old. Returns (metrics_dict, residual_string_pred_to_new).
     """
     if predicted is None:
         predicted = ""
-    if actual is None:
-        actual = ""
 
-    # Byte sizes
-    new_bytes = len(actual.encode("utf-8"))
+    # Basic byte sizes
+    new_bytes = len(actual_new.encode("utf-8"))
     pred_bytes = len(predicted.encode("utf-8"))
 
-    # Compute changed segments using SequenceMatcher
-    sm = difflib.SequenceMatcher(a=predicted, b=actual)
-    changed_segments = []
-    for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        if tag == "equal":
-            continue
-        # Take the corresponding segment from the actual (new) string
-        changed_segments.append(actual[j1:j2])
+    # Residual for model-based compression: predicted -> actual_new
+    llm_residual_bytes, residual_str = _residual_bytes(predicted, actual_new)
 
-    residual = "".join(changed_segments)
-    residual_bytes = len(residual.encode("utf-8"))
-    residual_len = len(residual)
+    # 'True' delta size: old -> new
+    true_delta_bytes, _ = _residual_bytes(old, actual_new)
 
-    # Approximate "percent predicted" as the fraction of new_bytes not covered by residual
+    # Model's delta size: old -> predicted
+    pred_delta_bytes, _ = _residual_bytes(old, predicted)
+
+    # Coverage: how much of new is 'explained' by the prediction
     if new_bytes > 0:
-        percent_predicted = max(0.0, 1.0 - (residual_bytes / new_bytes)) * 100.0
+        percent_predicted = 1.0 - (llm_residual_bytes / new_bytes)
     else:
         percent_predicted = 0.0
-
-    exact_match = int(predicted == actual)
 
     metrics = {
         "new_bytes": new_bytes,
         "pred_bytes": pred_bytes,
-        "residual_len": residual_len,
-        "residual_bytes": residual_bytes,
+        "llm_residual_bytes": llm_residual_bytes,
+        "true_delta_bytes": true_delta_bytes,
+        "pred_delta_bytes": pred_delta_bytes,
         "percent_predicted": percent_predicted,
-        "exact_match": exact_match,
+        "exact_match": int(predicted == actual_new),
     }
 
-    return metrics, residual
+    return metrics, residual_str
+
+
+def _residual_string(src: str, dst: str) -> str:
+    """
+    Build a 'residual' string representing how to go from src -> dst.
+    We approximate residual as the concatenation of all inserted/replaced
+    chunks from dst.
+    """
+    sm = difflib.SequenceMatcher(None, src, dst)
+    pieces = []
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag in ("replace", "insert"):
+            pieces.append(dst[j1:j2])
+        # NOTE: pure deletions are ignored (they don't cost bytes to send)
+    return "".join(pieces)
+
+
+def _residual_bytes(src: str, dst: str) -> int:
+    """
+    Byte size of the residual from src -> dst using the above heuristic.
+    """
+    residual = _residual_string(src, dst)
+    return len(residual.encode("utf-8")), residual
+
 
 
 # Write metrics results to CSV
 def _save_results(results):
-    """
-    Results rows contain:
-        index, old_len, new_len, pred_len,
-        new_bytes, pred_bytes, residual_len, residual_bytes,
-        percent_predicted, exact_match
-    """
     if not results:
-        print("No results to save.")
+        print("No metrics to save.")
         return
-
-    os.makedirs(os.path.dirname(METRICS_FILE), exist_ok=True)
-
-    # Collect all keys to be safe, but keep a stable ordering for important fields
-    fieldnames = [
-        "index",
-        "old_len",
-        "new_len",
-        "pred_len",
-        "new_bytes",
-        "pred_bytes",
-        "residual_len",
-        "residual_bytes",
-        "percent_predicted",
-        "exact_match",
-    ]
-    # Add any unexpected keys at the end
-    extra_keys = sorted({k for r in results for k in r.keys()} - set(fieldnames))
-    fieldnames += extra_keys
-
-    with open(METRICS_FILE, "w", encoding="utf-8", newline="") as f:
+    fieldnames = sorted(results[0].keys())
+    with open(METRICS_FILE, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        for row in results:
-            writer.writerow(row)
-
-    print(f"Saved metrics to {METRICS_FILE}")
+        writer.writerows(results)
+    print(f"Wrote metrics to {METRICS_FILE}")
 
 
-# Write residuals to JSONL
 def _save_residual(residuals):
-    """
-    Save residuals (index + residual string) to a JSONL file for later analysis
-    and comparison vs rsync residuals.
-    """
     if not residuals:
         print("No residuals to save.")
         return
-
-    os.makedirs(os.path.dirname(RESIDUAL_FILE), exist_ok=True)
-
     with open(RESIDUAL_FILE, "w", encoding="utf-8") as f:
         for rec in residuals:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-
-    print(f"Saved residuals to {RESIDUAL_FILE}")
+            json.dump(rec, f, ensure_ascii=False)
+            f.write("\n")
+    print(f"Wrote residuals to {RESIDUAL_FILE}")
+    
 
 def main():
     ap = argparse.ArgumentParser(description="Predict \"new\" output from old data")
