@@ -188,26 +188,30 @@ def _model_max_ctx():
 # Compare predicted data to actual "new"
 def _compare(old, predicted, actual_new):
     """
-    Compute metrics comparing predicted vs actual_new, and also how both
-    differ from old. Returns (metrics_dict, residual_string_pred_to_new).
+    Compute metrics for LLM-based compression.
+
+    - Baseline delta: old -> actual_new      (true_delta_bytes)
+    - LLM residual:   predicted -> actual_new (llm_residual_bytes, residual_str)
+
+    Returns (metrics_dict, residual_string_pred_to_new).
     """
     if predicted is None:
         predicted = ""
 
     # Basic byte sizes
-    new_bytes = len(actual_new.encode("utf-8"))
+    new_bytes  = len(actual_new.encode("utf-8"))
     pred_bytes = len(predicted.encode("utf-8"))
 
-    # Residual for model-based compression: predicted -> actual_new
-    llm_residual_bytes, residual_str = _residual_bytes(predicted, actual_new)
-
-    # 'True' delta size: old -> new
+    # Baseline delta size: old -> new
     true_delta_bytes, _ = _residual_bytes(old, actual_new)
 
-    # Model's delta size: old -> predicted
-    pred_delta_bytes, _ = _residual_bytes(old, predicted)
+    # LLM residual: predicted -> new  (this is the residual we report/save)
+    llm_residual_bytes, residual_str = _residual_bytes(predicted, actual_new)
 
-    # Coverage: how much of new is 'explained' by the prediction
+    # Optional: how much the model changed vs old (not used for residual)
+    model_delta_bytes, _ = _residual_bytes(old, predicted)
+
+    # Coverage: how much of new is "explained" by the prediction
     if new_bytes > 0:
         percent_predicted = 1.0 - (llm_residual_bytes / new_bytes)
     else:
@@ -216,13 +220,14 @@ def _compare(old, predicted, actual_new):
     metrics = {
         "new_bytes": new_bytes,
         "pred_bytes": pred_bytes,
-        "llm_residual_bytes": llm_residual_bytes,
-        "true_delta_bytes": true_delta_bytes,
-        "pred_delta_bytes": pred_delta_bytes,
+        "true_delta_bytes(new-old)": true_delta_bytes,       # old -> new
+        "llm_residual_bytes(new-pred)": llm_residual_bytes,   # pred -> new
+        "model_delta_bytes(pred-old)": model_delta_bytes,     # old -> pred (optional extra)
         "percent_predicted": percent_predicted,
         "exact_match": int(predicted == actual_new),
     }
 
+    # residual_str is specifically the residual from predicted -> new
     return metrics, residual_str
 
 
