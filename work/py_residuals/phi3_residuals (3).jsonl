@@ -1,0 +1,100 @@
+{"index": 2, "residual": "\n"}
+{"index": 3, "residual": "\n"}
+{"index": 4, "residual": " a\n"}
+{"index": 5, "residual": "\n"}
+{"index": 6, "residual": "# 02-02.py\n\n\n"}
+{"index": 7, "residual": "\n"}
+{"index": 8, "residual": "\n"}
+{"index": 9, "residual": " \n"}
+{"index": 10, "residual": "\n"}
+{"index": 11, "residual": "\n"}
+{"index": 12, "residual": "\n"}
+{"index": 13, "residual": "!= 4)\n"}
+{"index": 14, "residual": "\n"}
+{"index": 15, "residual": "\n"}
+{"index": 16, "residual": "\n"}
+{"index": 17, "residual": "#d = c + 10\n# you cannot concatenate a string and an integer\n# you must convert the integer to a string first:\n\n"}
+{"index": 18, "residual": "\n"}
+{"index": 19, "residual": "\n"}
+{"index": 20, "residual": "\n"}
+{"index": 21, "residual": ""}
+{"index": 22, "residual": "\n"}
+{"index": 23, "residual": "\n"}
+{"index": 24, "residual": "\n"}
+{"index": 25, "residual": "\n"}
+{"index": 26, "residual": "!= 4)\n"}
+{"index": 27, "residual": "\n"}
+{"index": 28, "residual": ""}
+{"index": 29, "residual": "# Notice the indentation (spacing out) of this code\n# The statement(s) following the if condition (i.e. boolean expression)\n# must be indented to the next tab stop. This means ou must press\n# theab button before typin the word print.\n# Trremoving the tab spaes and see what happens when you attempt to run"}
+{"index": 30, "residual": "\n"}
+{"index": 31, "residual": "\n"}
+{"index": 32, "residual": "\tgrade = 'C'\nprint()\n"}
+{"index": 33, "residual": " \n"}
+{"index": 34, "residual": "\n"}
+{"index": 35, "residual": "()\nprint()\n"}
+{"index": 36, "residual": "\nage = int(age()()()()()()    \n\n\nsalary = oat(input(\"Enter your annual salary, (e.g. 50000): \"))\n\nif (sal()()\n"}
+{"index": 37, "residual": "()()\n"}
+{"index": 38, "residual": "\n"}
+{"index": 39, "residual": "\n"}
+{"index": 40, "residual": " \n"}
+{"index": 41, "residual": "')\nprint('"}
+{"index": 42, "residual": "\n"}
+{"index": 43, "residual": "score = int( score )   # convert string to an integer\n    score = int( score )\n   \n"}
+{"index": 44, "residual": "8(c)"}
+{"index": 45, "residual": "\n"}
+{"index": 46, "residual": ""}
+{"index": 47, "residual": "break\n    "}
+{"index": 48, "residual": "\n"}
+{"index": 49, "residual": "f and %f is %0.2f and %0.2f is %0\n"}
+{"index": 50, "residual": "()()\n    print()\n    answer = ()\n"}
+{"index": 51, "residual": " # prints a new line, end=' ' # the , forces printing of the next item\n                           # to be on the same line , end=' ' # the , forces printing on the same line\n"}
+{"index": 52, "residual": "\n"}
+{"index": 53, "residual": ") \n    print()        "}
+{"index": 54, "residual": "\n"}
+{"index": 55, "residual": "\n"}
+{"index": 56, "residual": ""}
+{"index": 57, "residual": "()\n"}
+{"index": 58, "residual": "()()\nprint()\n\nprint()\n\n\n\n#  File:       myFunctions.py \n#  Purpose:    two programmer-defined functions\n#  Programmer: Anne Dawson\n#  Course:     CSCI120A, CSCI165\n#  Date:       Monday 11th October 2004, 8:57 PT\n\ndef cube( y ):\n    return y * y * y\n\ndef doubleIt ( z ):\n return 2 * z\n"}
+{"index": 59, "residual": ""}
+{"index": 60, "residual": "\n"}
+{"index": 61, "residual": "()\n        return\n    else:\n        \" returning %f divided by %f \" % (, y)\n        return x()(result)\n\nprint()(result)\n"}
+{"index": 62, "residual": ""}
+{"index": 63, "residual": "1 # 1 is true\n    else:\n        return 0 # 0 is false(result)\nprint()\n"}
+{"index": 64, "residual": "()()\n"}
+{"index": 65, "residual": "()\n    print()()()()()\n"}
+{"index": 66, "residual": "(result)(result)\nprint(result[0])\nprint()\nprint(result[2])\nprint()\nprint()\nprint()\nprint()\nprint()\n"}
+{"index": 67, "residual": " \n"}
+{"index": 68, "residual": " \n"}
+{"index": 69, "residual": "\n"}
+{"index": 70, "residual": "\n"}
+{"index": 71, "residual": "\n"}
+{"index": 72, "residual": "\n"}
+{"index": 73, "residual": "\n"}
+{"index": 74, "residual": "\n"}
+{"index": 75, "residual": "\n"}
+{"index": 76, "residual": " end=' ')\nprint(len(list2), end=' ')\nprint(\n"}
+{"index": 77, "residual": "\n"}
+{"index": 78, "residual": ""}
+{"index": 79, "residual": "\n"}
+{"index": 80, "residual": "\n"}
+{"index": 81, "residual": "\n"}
+{"index": 82, "residual": ","}
+{"index": 83, "residual": "\n"}
+{"index": 84, "residual": "\n"}
+{"index": 85, "residual": "\n"}
+{"index": 86, "residual": ""}
+{"index": 87, "residual": " end=' ')\nprint(len(s2), end=' ')\nprint(\n"}
+{"index": 88, "residual": "8s0('Pyton is as language'great'"}
+{"index": 89, "residual": "\n"}
+{"index": 90, "residual": "\n"}
+{"index": 91, "residual": "ntwo"}
+{"index": 92, "residual": "\n"}
+{"index": 93, "residual": ")\n"}
+{"index": 94, "residual": "\n# http://www.unicode.org/charts/(str1)(str1)\nprint()\nprint()\nprint()\nprint(str1)\nprint(str1)\nprint()\nprint()()'\\u2588\\u2588\\u2588\\u2588\\u0020\\u0020\\u0020\\u0020\\u2588\\u2588\\u2588\\u2588'\nprint(str1)\nprint(str1)\nprint()\nprint()\nprint()'\\u2588\\u2588\\u2588\\u2588'\nprint(str1)'\\u2588\\u2588\\u2588\\u2588\\u0020\\u0020\\u0020\\u0020\\u2588\\u2588\\u2588\\u2588'\nprint(str1)\n"}
+{"index": 95, "residual": "\n"}
+{"index": 96, "residual": "\n"}
+{"index": 97, "residual": "\nfile2 = open(\"C:\\\\temp\\\\tester2.txt\",\"r\")\nstring1 = file2.read(5)\nprint(string1)\nstring1 = file2.read(5)\nprint(string1)\nstring1 = file2.read(5)\nprint(string1)\nfile2.close()\n"}
+{"index": 98, "residual": "\n"}
+{"index": 99, "residual": "\n"}
+{"index": 100, "residual": "10-02sequential searof a listWednesday 19th November 2008, 11:37 PT\n\nmylist = [10,11,3,4,55,12,23,14,16]\nn = len(mylist)\nprint(n)\nfor i in range(n):\n    print(mylist[i], end=' ')\n\nsearch = int(input(\"\\nPlease enter a number to search for: \"))\n    \nprint(search)\n\nfound = False\nfor i in range(n):\n    if mylist[i] == search:\n        found = True\n        index = i\nprint()\n\nif found == True:\n    print(str(search) + \" found at index \" + str(index))\nelse:\n    print(str(search) + \" not found\")\n\n        \n\n\n\n\n\n\n\n\n\n\n#  File:       bubblesort.py \n#  Purpose:    Example: a program which demonstrates a bubble sort on\n#              a list of 10 random integers\n#  Programmer: Anne Dawson\n#  Course:     CSCI120A, CSCI165\n#  Date:       ()\nsort(numbers)\nprint()\n"}
+{"index": 101, "residual": "( end=' ')(result)\n\nprint( end=' ')(result)\n"}

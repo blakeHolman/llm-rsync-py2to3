@@ -3,5 +3,8 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 work/*.csv
-work/*.jsonl~
 work/*.log
+work/rsync_new/
+work/rsync_old/
+work/code_changes
+scripts/__pycache__/
