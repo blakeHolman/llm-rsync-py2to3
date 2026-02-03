@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # scripts/predict_new.py
 
-import argparse, os, json, sys, csv, difflib
+import argparse, os, json, sys, csv, base64
+from residuals import get_residual
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -30,7 +31,7 @@ MODEL = AutoModelForCausalLM.from_pretrained(
 MODEL = MODEL.to(DEVICE)
 
 METRICS_FILE = "../work/metrics.csv"
-RESIDUAL_FILE = "../work/residuals.csv"
+RESIDUAL_FILE = "../work/residuals.jsonl"
 
 # Open old, new dataset. Pass old to LLM
 def _open_data(path, len_prompt=False, stop_after=sys.maxsize):
@@ -73,31 +74,37 @@ def _open_data(path, len_prompt=False, stop_after=sys.maxsize):
 
             # Optionally include length of "new" in the prediction call
             target_len = len(TOKENIZER(new).input_ids) if len_prompt else None
-            predicted = _predict(old, prev_old, prev_new, target_len=target_len)
+            predicted = predict(old, prev_old, prev_new, target_len=target_len)
+            
+            """
             print("==============old=============")
             print(old)
             print("===============pred============")
             print(predicted)
             print("==============actual=============")
             print(new)
-
+            """
+            
             prev_old = old
             prev_new = new
 
             metrics, residual = _compare(old, predicted, new)
 
+            file_id = rec.get("id")
+
             row = {
-                "index": idx,
+                "id": file_id,
                 "old_len": len(old),
                 "new_len": len(new),
                 "pred_len": len(predicted) if predicted is not None else 0,
+                "residual_len": len(residual),
                 **(metrics or {}),
             }
             results.append(row)
 
             residuals.append({
-                "index": idx,
-                "residual": residual,
+                "id": file_id,
+                "residual": base64.b64encode(residual).decode("ascii"),
             })
 
     _save_results(results)
@@ -105,7 +112,7 @@ def _open_data(path, len_prompt=False, stop_after=sys.maxsize):
 
 
 # Given old data, predict new
-def _predict(old, prev_old, prev_new, target_len=None):
+def predict(old, prev_old, prev_new, target_len=None):
     # Create prompt (prompt + old (+ optional len))
     prompt = (
         "Apply the same kind of edits as in the example.\n"
@@ -171,7 +178,7 @@ def _predict(old, prev_old, prev_new, target_len=None):
     new_tokens = outputs[0, prompt_len:]
     predicted = TOKENIZER.decode(new_tokens, skip_special_tokens=True)
     
-    return predicted.strip()
+    return predicted
 
 
 def _model_max_ctx():
@@ -198,61 +205,34 @@ def _compare(old, predicted, actual_new):
     if predicted is None:
         predicted = ""
 
-    # Basic byte sizes
     new_bytes  = len(actual_new.encode("utf-8"))
     pred_bytes = len(predicted.encode("utf-8"))
 
-    # Baseline delta size: old -> new
-    true_delta_bytes, _ = _residual_bytes(old, actual_new)
+    # Baseline: old -> new as COPY/LIT patch too (optional)
+    #true_patch = get_residual(actual_new, old)
+    #true_delta_bytes = len(true_patch)
 
-    # LLM residual: predicted -> new  (this is the residual we report/save)
-    llm_residual_bytes, residual_str = _residual_bytes(predicted, actual_new)
+    # LLM residual: pred -> new patch
+    llm_patch = get_residual(actual_new, predicted)
+    llm_residual_bytes = len(llm_patch)
 
-    # Optional: how much the model changed vs old (not used for residual)
-    model_delta_bytes, _ = _residual_bytes(old, predicted)
+    # Optional: old -> pred patch
+    #model_patch = get_residual(predicted, old)
+    #model_delta_bytes = len(model_patch)
 
-    # Coverage: how much of new is "explained" by the prediction
-    if new_bytes > 0:
-        percent_predicted = 1.0 - (llm_residual_bytes / new_bytes)
-    else:
-        percent_predicted = 0.0
+    #percent_predicted = 1.0 - (llm_residual_bytes / new_bytes) if new_bytes > 0 else 0.0
 
     metrics = {
         "new_bytes": new_bytes,
         "pred_bytes": pred_bytes,
-        "true_delta_bytes(new-old)": true_delta_bytes,       # old -> new
-        "llm_residual_bytes(new-pred)": llm_residual_bytes,   # pred -> new
-        "model_delta_bytes(pred-old)": model_delta_bytes,     # old -> pred (optional extra)
-        "percent_predicted": percent_predicted,
+        #"true_delta_bytes(new-old)": true_delta_bytes,
+        "llm_residual_bytes(new-pred)": llm_residual_bytes,
+        #"model_delta_bytes(pred-old)": model_delta_bytes,
+        #"percent_predicted": percent_predicted,
         "exact_match": int(predicted == actual_new),
     }
 
-    # residual_str is specifically the residual from predicted -> new
-    return metrics, residual_str
-
-
-def _residual_string(src: str, dst: str) -> str:
-    """
-    Build a 'residual' string representing how to go from src -> dst.
-    We approximate residual as the concatenation of all inserted/replaced
-    chunks from dst.
-    """
-    sm = difflib.SequenceMatcher(None, src, dst)
-    pieces = []
-    for tag, i1, i2, j1, j2 in sm.get_opcodes():
-        if tag in ("replace", "insert"):
-            pieces.append(dst[j1:j2])
-        # NOTE: pure deletions are ignored (they don't cost bytes to send)
-    return "".join(pieces)
-
-
-def _residual_bytes(src: str, dst: str) -> int:
-    """
-    Byte size of the residual from src -> dst using the above heuristic.
-    """
-    residual = _residual_string(src, dst)
-    return len(residual.encode("utf-8")), residual
-
+    return metrics, llm_patch
 
 
 # Write metrics results to CSV
