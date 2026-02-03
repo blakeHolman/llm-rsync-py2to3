@@ -5,6 +5,31 @@ import json, sys, argparse, os, base64
 from residuals import apply_residual
 from predict_new import predict
 
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+MODEL_NAME = "microsoft/Phi-3-mini-4k-instruct"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Phi-3 uses custom code, so trust_remote_code is recommended
+TOKENIZER = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+
+# Causal LMs often have no pad token; use EOS as pad if needed
+if TOKENIZER.pad_token is None:
+    TOKENIZER.pad_token = TOKENIZER.eos_token
+
+# Use half precision on GPU to save VRAM; full precision on CPU
+DTYPE = torch.float16 if DEVICE == "cuda" else torch.float32
+
+MODEL = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    trust_remote_code=True,
+    torch_dtype=DTYPE,
+    low_cpu_mem_usage=True,  # stream weights to reduce peak RAM
+)
+
+MODEL = MODEL.to(DEVICE)
+
 RESIDUAL_FILE = "work/residuals.jsonl"
 
 RESIDUAL_DICT = None
