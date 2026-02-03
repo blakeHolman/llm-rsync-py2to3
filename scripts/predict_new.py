@@ -30,8 +30,8 @@ MODEL = AutoModelForCausalLM.from_pretrained(
 
 MODEL = MODEL.to(DEVICE)
 
-METRICS_FILE = "../work/metrics.csv"
-RESIDUAL_FILE = "../work/residuals.jsonl"
+METRICS_FILE = "work/metrics.csv"
+RESIDUAL_FILE = "work/residuals.jsonl"
 
 # Open old, new dataset. Pass old to LLM
 def _open_data(path, len_prompt=False, stop_after=sys.maxsize):

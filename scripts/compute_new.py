@@ -30,7 +30,7 @@ MODEL = AutoModelForCausalLM.from_pretrained(
 
 MODEL = MODEL.to(DEVICE)
 
-RESIDUAL_FILE = "../work/residuals.jsonl"
+RESIDUAL_FILE = "work/residuals.jsonl"
 
 RESIDUAL_DICT = None
 
