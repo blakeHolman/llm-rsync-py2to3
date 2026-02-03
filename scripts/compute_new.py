@@ -116,7 +116,7 @@ def _open_data(path, len_prompt=False, stop_after=sys.maxsize, residuals_path=RE
             computed_new = apply_residual(predicted, residual).decode("utf-8")
 
             # Validate computed new matches expected new
-            _validate(computed_new, new)
+            _validate(new, computed_new, rec_id)
 
             prev_old = old
             prev_new = new
