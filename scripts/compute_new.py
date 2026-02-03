@@ -130,6 +130,7 @@ def _compute_new(old, prev_old, prev_new, target_len=None):
 
 def _validate(new, expected_new, rec_id):
     assert new == expected_new, f"Computed new does not match expected new for record {rec_id}"
+    print(f"Record {rec_id} validated.")
 
 
 def main():
